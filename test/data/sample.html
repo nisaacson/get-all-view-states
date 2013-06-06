@@ -1,0 +1,66 @@
+<head id="ctl00_Head1"><title>
+    NSTAR E-Bill
+</title>
+    <!--DO NOT REMOVE OR MOVE BELOW META TAG as it is required for IE8 to properly work and must be one of the first elements in the head-->
+    <meta http-equiv="X-UA-Compatible" content="IE=7"><meta http-equiv="Content-Style-Type" content="text/css"><meta name="author" content="KUBRA Management"><meta name="robots" content="noindex, nofollow">
+    <!--DO NOT REMOVE BELOW LINK as it will cause 404 errors on our servers.
+        If you do not require favicon.ico for your implementation create a blank icon and replace the icon in the Subscriber folder
+    -->
+    <link id="ctl00_lnkFavIcon" rel="shortcut icon" href="../favicon.ico" type="image/x-icon"><link rel="stylesheet" type="text/css" href="../Resources/css/jquery-ui-1.7.2.custom.css" media="screen, projection, tv, print "><link rel="stylesheet" type="text/css" href="../Resources/css/html.css" media="screen, projection, tv, print "><link rel="stylesheet" type="text/css" href="../Resources/css/nstaronline3.css">
+    <!--[if lt IE 7]>
+    <link id="ctl00_IE6MenuCSS" rel="stylesheet" href="../Resources/css/BrowserSpecific/IE6Menu.css" type="text/css" />
+    <![endif]-->
+
+    <script type="text/javascript">
+        function checkForm(source, args) {
+            args.IsValid = ($("#tblBills input:checkbox:checked[id$=cb]").length > 0);
+        }
+    </script>
+
+    <style type="text/css">
+.ALINK a { text-decoration: underline; color: #000080; font-weight: normal; }
+.ALINK a:HOVER { color: #000000; text-decoration:none; font-size:1.0em;        /*font-weight: bold;*/ }
+#panel { height: 500px; width: 200px; background: black; float: left; display: none; color: white; font-size: xx-large; }
+#click { height: 50px; width: 25px; background: red; float: left; margin-top: 200px; }
+#panel1 { width: 300px; height: 200px; background: #000; display: none; position:absolute; left:150px; top:150px;}
+#divTogglePanel { width: 50px; background: #FF0000; height: 50px; float: left; text-align: center;}
+.progressbar-box {   position: absolute;  top:400px; left:500px; width:180px; height:100px; background: #FFFFFF;  opacity:1; filter:alpha(opacity=100);}
+.progressbar-wrap, .progressbar-value, .progressbar-text {  /* The width and height of your image text-align: center;*/  width: 150px; height: 20px; }
+.progressbar-wrap, .progressbar-value {   position: absolute;  top:50px; left:15px; background: #C4D3E3 url(../Resources/images/progressbar.png) top left no-repeat;}
+.progressbar-value {   background-color:  #2DAC47; width: 0%;}
+.progressbar-text {    position: absolute;    top:0px; left:70px;    padding-top: 2px;    color: #fff;        width: 100%; }
+div#CanvasB
+    {   position: absolute; top:0px; left:0px;  height: 4096px; width: 100%;    margin: 0;  padding: 0; border: 1;  background-color:gray;    opacity:0.9;    filter:alpha(opacity=90); /* For IE8 and earlier */
+        vertical-align: middle;
+    }
+    </style>
+<style type="text/css">
+    .ctl00_MainMenu_0 { background-color:white;visibility:hidden;display:none;position:absolute;left:0px;top:0px; }
+    .ctl00_MainMenu_1 { text-decoration:none; }
+    .ctl00_MainMenu_2 {  }
+
+</style><style type="text/css"></style></head>
+<body style="">
+    <div id="divOutside" class="IDOXS" style="">
+
+        <form method="post" action="Bills.aspx" onsubmit="javascript:return WebForm_OnSubmit();" id="aspnetForm" autocomplete="false">
+<div>
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
+<input type="hidden" name="__VIEWSTATEFIELDCOUNT" id="__VIEWSTATEFIELDCOUNT" value="15">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKMTI0ODc4MzkzMQ8WBB4EX0JTQwUFQUNDTk8eBF9CU0kCARYCZg9kFgICAQ9kFgICAw9kFgICAQ9kFgICAQ9kFgZmD2QWAgIFDxYCHgdWaXNpYmxlaGQCCA8WAh4Fc3R5bGUFhQF3aWR0aDoxOTBweDtwYWRkaW5nOjAgMTBweDtoZWlnaHQ6MTAwJTtiYWNrZ3JvdW5kLWNvbG9yOiNDNEQzRTM7Ym9yZGVyLXRvcDoxcHggc29saWQgIzQ0NDtib3JkZXItYm90dG9tOjFweCBzb2xpZCAjNDQ0O2Rpc3BsYXk6YmxvY2s7FgICAQ9kFgQCAw8QDxYCHgtfIURhdGFCb3VuZGdkDxYkAgECAgIDAgQCBQIGAgcCCAIJAgoCCwIMAg0CDgIPAhACEQISAhMCFAIVAhYCFwIYAhkCGgIbAhwCHQIeAh8CIAIhAiICIwIkFiQQBQsxMjIxMDMyMDAyOQULMTIyMTAzMjAwMjln">
+<input type="hidden" name="__VIEWSTATE1" id="__VIEWSTATE1" value="EAULMTIyMjgwNjAwMzkFCzEyMjI4MDYwMDM5ZxAFCzEyMjQyOTUwMDI1BQsxMjI0Mjk1MDAyNWcQBQsxMjI0Mjk5MDAzOQULMTIyNDI5OTAwMzlnEAULMTIyNDMwMTAwMTkFCzEyMjQzMDEwMDE5ZxAFCzEyMjU2MTkwMDEzBQsxMjI1NjE5MDAxM2cQBQsxMjQ5NjQ3MDAyNwULMTI0OTY0NzAwMjdnEAULMTI0OTY1MjAwMTEFCzEyNDk2NTIwMDExZxAFCzE1OTI4NjcwMDQ5BQsxNTkyODY3MDA0OWcQBQsxNTkzNjE4MDAxNQULMTU5MzYxODAwMTVnEAULMTYwODczMTAwMTMFCzE2MDg3MzEwMDEzZxAFCzE2MTIxMDUwMDEzBQsxNjEyMTA1MDAxM2cQBQsxNjEyMTA2MDAxMgULMTYxMjEwNjAwMTJnEAULMTYxOTM1NTAwMjMFCzE2MTkzNTUwMDIzZxAFCzE2MjM1Mjkw">
+<input type="hidden" name="__VIEWSTATE2" id="__VIEWSTATE2" value="MDI2BQsxNjIzNTI5MDAyNmcQBQsxNjMyNDA1MDAyNgULMTYzMjQwNTAwMjZnEAULMTY0MjIyODAwMTIFCzE2NDIyMjgwMDEyZxAFCzE2NDIyMjkwMDExBQsxNjQyMjI5MDAxMWcQBQsxNjU1Njc2MDAxMQULMTY1NTY3NjAwMTFnEAULMTY2MzIwMjAwMjYFCzE2NjMyMDIwMDI2ZxAFCzE2NjQwMjAwMDE2BQsxNjY0MDIwMDAxNmcQBQsxNjY2OTU0MDAyOQULMTY2Njk1NDAwMjlnEAULMTY2Njk1NjAwMjcFCzE2NjY5NTYwMDI3ZxAFCzI3MDQ3OTcwMDEwBQsyNzA0Nzk3MDAxMGcQBQsyNzQ1MDMyMDAxOAULMjc0NTAzMjAwMThnEAULMjc0OTIyNTAwMTcFCzI3NDkyMjUwMDE3ZxAFCzI3NjEwODcwMDM1BQsyNzYxMDg3MDAzNWcQBQsyNzYxMDg4MDAyNgULMjc2MTA4">
+<input type="hidden" name="__VIEWSTATE3" id="__VIEWSTATE3" value="ODAwMjZnEAULMjc2MTA4OTAwMjUFCzI3NjEwODkwMDI1ZxAFCzI3NjEwOTAwMDIyBQsyNzYxMDkwMDAyMmcQBQsyNzYxMDkxMDAyMQULMjc2MTA5MTAwMjFnEAULMjc2MTA5MjAwMjAFCzI3NjEwOTIwMDIwZxAFCzI3NjEwOTMwMDI5BQsyNzYxMDkzMDAyOWcQBQsyNzg4ODYwMDAxNQULMjc4ODg2MDAwMTVnEAULMjc5NjM0NjAwMTIFCzI3OTYzNDYwMDEyZxAFCzI4MzU1NTkwMDEwBQsyODM1NTU5MDAxMGdkZAIFD2QWDgIFDxYGHwMFFXRleHQtZGVjb3JhdGlvbjpub25lOx4Hb25jbGljawUgamF2YXNjcmlwdDpyZXR1cm4gVVJMc1dhcm5pbmcoKTseCGRpc2FibGVkBQR0cnVlZAIHDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFz">
+<input type="hidden" name="__VIEWSTATE4" id="__VIEWSTATE4" value="Y3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIJDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAILDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAINDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIPDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIRDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFz">
+<input type="hidden" name="__VIEWSTATE5" id="__VIEWSTATE5" value="Y3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIJD2QWBgIPDxAPFgIfBGdkEBUCBUJpbGxzDEJpbGwgQXJjaGl2ZRUCATEBMhQrAwJnZxYBZmQCEw8QDxYCHwRnZBAVJQNBTEwLMTIyMTAzMjAwMjkLMTIyMjgwNjAwMzkLMTIyNDI5NTAwMjULMTIyNDI5OTAwMzkLMTIyNDMwMTAwMTkLMTIyNTYxOTAwMTMLMTI0OTY0NzAwMjcLMTI0OTY1MjAwMTELMTU5Mjg2NzAwNDkLMTU5MzYxODAwMTULMTYwODczMTAwMTMLMTYxMjEwNTAwMTMLMTYxMjEwNjAwMTILMTYxOTM1NTAwMjMLMTYyMzUyOTAwMjYLMTYzMjQwNTAwMjYLMTY0MjIyODAwMTILMTY0MjIyOTAwMTELMTY1NTY3NjAwMTELMTY2MzIwMjAwMjYLMTY2NDAyMDAwMTYLMTY2Njk1NDAwMjkLMTY2Njk1NjAw">
+<input type="hidden" name="__VIEWSTATE6" id="__VIEWSTATE6" value="MjcLMjcwNDc5NzAwMTALMjc0NTAzMjAwMTgLMjc0OTIyNTAwMTcLMjc2MTA4NzAwMzULMjc2MTA4ODAwMjYLMjc2MTA4OTAwMjULMjc2MTA5MDAwMjILMjc2MTA5MTAwMjELMjc2MTA5MjAwMjALMjc2MTA5MzAwMjkLMjc4ODg2MDAwMTULMjc5NjM0NjAwMTILMjgzNTU1OTAwMTAVJQALMTIyMTAzMjAwMjkLMTIyMjgwNjAwMzkLMTIyNDI5NTAwMjULMTIyNDI5OTAwMzkLMTIyNDMwMTAwMTkLMTIyNTYxOTAwMTMLMTI0OTY0NzAwMjcLMTI0OTY1MjAwMTELMTU5Mjg2NzAwNDkLMTU5MzYxODAwMTULMTYwODczMTAwMTMLMTYxMjEwNTAwMTMLMTYxMjEwNjAwMTILMTYxOTM1NTAwMjMLMTYyMzUyOTAwMjYLMTYzMjQwNTAwMjYLMTY0MjIyODAwMTILMTY0MjIyOTAw">
+<input type="hidden" name="__VIEWSTATE7" id="__VIEWSTATE7" value="MTELMTY1NTY3NjAwMTELMTY2MzIwMjAwMjYLMTY2NDAyMDAwMTYLMTY2Njk1NDAwMjkLMTY2Njk1NjAwMjcLMjcwNDc5NzAwMTALMjc0NTAzMjAwMTgLMjc0OTIyNTAwMTcLMjc2MTA4NzAwMzULMjc2MTA4ODAwMjYLMjc2MTA4OTAwMjULMjc2MTA5MDAwMjILMjc2MTA5MTAwMjELMjc2MTA5MjAwMjALMjc2MTA5MzAwMjkLMjc4ODg2MDAwMTULMjc5NjM0NjAwMTILMjgzNTU1OTAwMTAUKwMlZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2RkAhsPFCsAAg8WBB8EZx4LXyFJdGVtQ291bnQCD2RkFgJmD2QWAgIZDxYCHgdjb2xzcGFuBQE5ZBgEBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WPwUXY3RsMDAkbG9naW5TdGF0dXMkY3Rs">
+<input type="hidden" name="__VIEWSTATE8" id="__VIEWSTATE8" value="MDEFF2N0bDAwJGxvZ2luU3RhdHVzJGN0bDAzBRljdGwwMCRNYWluJGx2QmlsbHMkY2hrQWxsBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDAkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsMCRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwwJGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwwJGJ0RmlsZQUbY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxJGNiBSFjdGwwMCRNYWluJGx2QmlsbHMkY3RybDEkYnRuQ2hhcnQFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMSRidFZpZXcFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMSRidEZpbGUFG2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMiRjYgUhY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwyJGJ0bkNo">
+<input type="hidden" name="__VIEWSTATE9" id="__VIEWSTATE9" value="YXJ0BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDIkYnRWaWV3BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDIkYnRGaWxlBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDMkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsMyRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwzJGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwzJGJ0RmlsZQUbY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw0JGNiBSFjdGwwMCRNYWluJGx2QmlsbHMkY3RybDQkYnRuQ2hhcnQFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNCRidFZpZXcFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNCRidEZpbGUFG2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNSRjYgUhY3RsMDAkTWFpbiRsdkJp">
+<input type="hidden" name="__VIEWSTATE10" id="__VIEWSTATE10" value="bGxzJGN0cmw1JGJ0bkNoYXJ0BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDUkYnRWaWV3BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDUkYnRGaWxlBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDYkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsNiRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw2JGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw2JGJ0RmlsZQUbY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw3JGNiBSFjdGwwMCRNYWluJGx2QmlsbHMkY3RybDckYnRuQ2hhcnQFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNyRidFZpZXcFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNyRidEZpbGUFG2N0bDAwJE1haW4kbHZCaWxscyRjdHJsOCRjYgUh">
+<input type="hidden" name="__VIEWSTATE11" id="__VIEWSTATE11" value="Y3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw4JGJ0bkNoYXJ0BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDgkYnRWaWV3BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDgkYnRGaWxlBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDkkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsOSRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw5JGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw5JGJ0RmlsZQUcY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRjYgUiY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRidG5DaGFydAUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRidFZpZXcFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTAkYnRGaWxlBRxjdGwwMCRNYWlu">
+<input type="hidden" name="__VIEWSTATE12" id="__VIEWSTATE12" value="JGx2QmlsbHMkY3RybDExJGNiBSJjdGwwMCRNYWluJGx2QmlsbHMkY3RybDExJGJ0bkNoYXJ0BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDExJGJ0VmlldwUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMSRidEZpbGUFHGN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTIkY2IFImN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTIkYnRuQ2hhcnQFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTIkYnRWaWV3BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDEyJGJ0RmlsZQUcY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMyRjYgUiY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMyRidG5DaGFydAUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMyRidFZpZXcFIGN0bDAwJE1haW4kbHZCaWxs">
+<input type="hidden" name="__VIEWSTATE13" id="__VIEWSTATE13" value="cyRjdHJsMTMkYnRGaWxlBRxjdGwwMCRNYWluJGx2QmlsbHMkY3RybDE0JGNiBSJjdGwwMCRNYWluJGx2QmlsbHMkY3RybDE0JGJ0bkNoYXJ0BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDE0JGJ0VmlldwUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxNCRidEZpbGUFHGN0bDAwJE1haW4kbHZCaWxscyR2aWV3UGFnZXIPFCsAAgIBAg9kBRJjdGwwMCRNYWluJGx2QmlsbHMPFCsACmRkZGRkZBUFCUNhdGFsb2dJRAVEQl9JRAZEb2NLZXkIRG9jUGFnZXMHRG9jVHlwZRQrAA8UKwAFAgEChwUCxAQCAQUDQUZQFCsABQIBAisCuQQCAQUDQUZQFCsABQIBAoUEAqkgAgIFA0FGUBQrAAUCAQJoApUhAgIFA0FGUBQrAAUCAQKFBALDIQICBQNBRlAUKwAFAgECaAKzIgICBQNB">
+<input type="hidden" name="__VIEWSTATE14" id="__VIEWSTATE14" value="RlAUKwAFAgECswQC7RwCAgUDQUZQFCsABQIBAmgCrSICAgUDQUZQFCsABQIBAoUEArchAgIFA0FGUBQrAAUCAQJoAqUiAgIFA0FGUBQrAAUCAQKFBAK1IQICBQNBRlAUKwAFAgECaAKjIgICBQNBRlAUKwAFAgEChQQCuyECAgUDQUZQFCsABQIBAmgCqSICAgUDQUZQFCsABQIBAoUEArkhAgIFA0FGUAIPFCsABQIBAv4CApIoAgQFA0FGUGQFDmN0bDAwJE1haW5NZW51Dw9kBRdCaWxsc1xWaWV3IEJpbGwgSGlzdG9yeWRxDssRCwc3iJ1RV7/Xidqve3VAIA==">
+</div>
