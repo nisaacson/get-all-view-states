@@ -1,0 +1,29 @@
+{
+  "name": "get-all-view-states",
+  "version": "1.0.0",
+  "description": "Extract all view-state related values from an html string parsed by cheerio",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nisaacson/get-all-view-states.git"
+  },
+  "keywords": [
+    "viewstate",
+    "view",
+    "state",
+    "asp"
+  ],
+  "author": "Noah isaacson",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "68fd0526fa612472cc4e315f3c9db098719b8649",
+  "bugs": {
+    "url": "https://github.com/nisaacson/get-all-view-states/issues"
+  }
+}
