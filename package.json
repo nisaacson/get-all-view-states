@@ -25,5 +25,11 @@
   "gitHead": "68fd0526fa612472cc4e315f3c9db098719b8649",
   "bugs": {
     "url": "https://github.com/nisaacson/get-all-view-states/issues"
+  },
+  "devDependencies": {
+    "eyespect": "~0.1.8",
+    "should": "~1.2.2",
+    "mocha": "~1.10.0",
+    "cheerio": "~0.11.0"
   }
 }

@@ -15,7 +15,7 @@ In the example above, viewStates is an object that looks like
 
 ```javascript
 {
-    viewStateCount: 4,
+    viewStateFieldCount: 4,
     viewState: 'sdofijdsofje',
     viewState1: '1dsfsdf',
     viewState2: '20dk2md9',
