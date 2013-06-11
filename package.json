@@ -31,5 +31,8 @@
     "should": "~1.2.2",
     "mocha": "~1.10.0",
     "cheerio": "~0.11.0"
+  },
+  "dependencies": {
+    "underscore": "~1.4.4"
   }
 }

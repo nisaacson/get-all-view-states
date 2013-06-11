@@ -10,7 +10,9 @@ describe('Extract View State', function () {
     var $ = cheerio.load(html)
     var viewStates = getAllViewStates($)
     should.exist(viewStates)
-    should.exist(viewStates.viewStateFieldCount)
-    viewStates.viewStateFieldCount.should.eql(desiredViewStateCount)
+    should.exist(viewStates['__VIEWSTATEFIELDCOUNT'])
+    should.exist(viewStates['__VIEWSTATE'])
+    var count = viewStates['__VIEWSTATEFIELDCOUNT']
+    count.should.eql(desiredViewStateCount)
   })
 })
