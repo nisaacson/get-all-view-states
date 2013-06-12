@@ -23,6 +23,10 @@ module.exports = function($) {
   if (previousPage.length > 0) {
     output['__PREVIOUSPAGE'] = previousPage.attr('value').trim()
   }
+  var eventValidation = $('#__EVENTVALIDATION')
+  if (eventValidation.length > 0) {
+    output['__EVENTVALIDATION'] = eventValidation.attr('value').trim()
+  }
   return output
 
 }
