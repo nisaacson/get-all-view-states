@@ -12,6 +12,7 @@ describe('Extract View State', function () {
     should.exist(viewStates)
     should.exist(viewStates['__VIEWSTATEFIELDCOUNT'])
     should.exist(viewStates['__VIEWSTATE'])
+    should.exist(viewStates['__PREVIOUSPAGE'])
     var count = viewStates['__VIEWSTATEFIELDCOUNT']
     count.should.eql(desiredViewStateCount)
   })

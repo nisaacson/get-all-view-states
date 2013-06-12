@@ -19,6 +19,10 @@ module.exports = function($) {
   }, {})
   output['__VIEWSTATEFIELDCOUNT'] = count
   output["__VIEWSTATE"] = viewState0.attr('value').trim()
+  var previousPage = $('#__PREVIOUSPAGE')
+  if (previousPage.length > 0) {
+    output['__PREVIOUSPAGE'] = previousPage.attr('value').trim()
+  }
   return output
 
 }
