@@ -1,4 +1,4 @@
-<head id="ctl00_Head1"><title>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head id="ctl00_Head1"><title>
     NSTAR E-Bill
 </title>
     <!--DO NOT REMOVE OR MOVE BELOW META TAG as it is required for IE8 to properly work and must be one of the first elements in the head-->
@@ -11,9 +11,124 @@
     <link id="ctl00_IE6MenuCSS" rel="stylesheet" href="../Resources/css/BrowserSpecific/IE6Menu.css" type="text/css" />
     <![endif]-->
 
+    <style type="text/css">
+        div.fadeinB
+        {   top:0;  height: 100%;   width:100%; margin:0 auto;  display:inline-block;   *overflow:auto;
+            /*position:relative; */
+        }
+        div.layerB1
+        {   padding: 0; border: 0;      margin: 0 auto; overflow: auto; text-align: center; width: 150px;   top: 0; left: 0;    height: 150px;
+            /* position: absolute; */
+        }
+        div#CanvasB
+        {   position: absolute;     height: 200px;  width: 200px;   left: 450px;    top: 350px; margin: 0;  padding: 0; border: 1;  background-color:gray;    opacity:0.9;    filter:alpha(opacity=90); /* For IE8 and earlier */
+            vertical-align: middle;     background-image: url(../Resources/Images/BillProgress_white.gif);  background-repeat: no-repeat;   background-position: center;
+        }
+        div.wrapperB
+        {   position: absolute; height: 200px;  width: 200px;   left: 350px;    top: 250px; margin: 0;  padding: 0; border: 0;  background-color:gray;  background-image: url(../Images/BillProgress_white.gif);
+            opacity:0.9;    filter:alpha(opacity=90); /* For IE8 and earlier */
+        }
+    </style>
     <script type="text/javascript">
+        var _prefix = 'ctl00_Main_';
         function checkForm(source, args) {
             args.IsValid = ($("#tblBills input:checkbox:checked[id$=cb]").length > 0);
+        }
+
+        function checkGroupSelection() {
+            var notchecked = ($("#tblBills input:checkbox:checked").length == 0);
+            if (notchecked) {
+                alert("Please check at least one bill.");
+                return false;
+            }
+            return true;
+        }
+
+        function checkTotalAmount() {
+            var dblAmountToPay = 0;
+            var balance = 0;
+
+            $("#tblBills input:checkbox:checked").each(function (index) {
+                if ($(this).attr("id").indexOf("cb") > 0) {
+                    dblAmountToPay = parseFloat($(this).parent().parent().children(".Width2em").next().next().next().next().next().next().next().text().replace(/( |,|\$|\(|\))/mg, ""));
+                    if (dblAmountToPay > 0)
+                        balance += dblAmountToPay;
+                }
+            });
+            if ($("#tblBills input:checkbox:checked").length > 0) {
+                if (balance > 0) {
+                    var obj = document.getElementById(_prefix + "btnPaySelected");
+                    if (obj != undefined)
+                        obj.disabled = false;
+                    $("input[name*=btnPay]").val($("input[name*=btnPay]").attr("LANG") + ": " + formatCurrency(balance));
+                }
+                else {
+                    var obj = document.getElementById(_prefix + "btnPaySelected");
+                    if (obj != undefined)
+                        obj.disabled = true;
+                    $("input[name*=btnPay]").val($("input[name*=btnPay]").attr("LANG"));
+                }
+            }
+            else {
+                var obj = document.getElementById(_prefix + "btnPaySelected");
+
+                if (obj != undefined) {
+                    obj.disabled = true;
+                    var checkAll = $("input:checkbox[name*=chkAll]");
+                    checkAll.checked = false;
+                }
+                $("input[name*=btnPay]").val($("input[name*=btnPay]").attr("LANG"));
+            }
+            return (balance > 0);
+        }
+
+        function formatCurrency(num) {
+            var sign, cents;
+
+            num = num.toString().replace(/\$|\,/g, '');
+
+            if (isNaN(num)) {
+                num = "0";
+            }
+            sign = (num == (num = Math.abs(num)));
+            num = Math.floor(num * 100 + 0.50000000001);
+            cents = num % 100;
+            num = Math.floor(num / 100).toString();
+            if (cents < 10) {
+                cents = "0" + cents;
+            }
+            for (var i = 0; i < Math.floor((num.length - (1 + i)) / 3); i++) {
+                num = num.substring(0, num.length - (4 * i + 3)) + ',' + num.substring(num.length - (4 * i + 3));
+            }
+
+            return (((sign) ? '' : '-') + '$' + num + '.' + cents);
+        }
+
+        function RefreshBalance(obj) {
+            var prefix = obj.id.replace("btRetrieve", "");
+            var accno = $('#tblBills input:image[id$=' + obj.id + ']').parent().parent().children(".Width2em").next().text().replace(/( |,|\$|\(|\))/mg, "")
+            accno = accno.trim();
+            PageMethods.UpdateBalance(prefix + "btRetrieve", accno, "", RefreshBalance_OnSucceeded, RefreshBalance_OnFailed);
+        }
+
+        function RefreshBalance_OnSucceeded(result, userContext, methodName) {
+            alert("RefreshBalance_OnSucceeded: " + result);
+            var spl = result.split("|");
+            if (spl.length > 6 ) {
+                var ctrl = spl[0];
+                var accno = spl[1];
+                var aPayMethod = spl[2];
+                var cretidAmt = spl[3];
+                var totalAmt = spl[4];
+                var shutOff = spl[5];
+                var accMarkSeg = spl[6];
+                $get($('#tblBills input:image[id$=' + ctrl + ']').parent().parent().children(".Width2em").next().next().next().next().next().next().next().html(totalAmt));
+
+            }
+        }
+
+        function RefreshBalance_OnFailed(error) {
+            alert("RefreshBalance_OnFailed");
         }
     </script>
 
@@ -43,24 +158,1298 @@ div#CanvasB
 <body style="">
     <div id="divOutside" class="IDOXS" style="">
 
-        <form method="post" action="Bills.aspx" onsubmit="javascript:return WebForm_OnSubmit();" id="aspnetForm" autocomplete="false">
+        <form method="post" action="Home.aspx" id="aspnetForm" autocomplete="false">
 <div>
 <input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="">
 <input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="">
-<input type="hidden" name="__VIEWSTATEFIELDCOUNT" id="__VIEWSTATEFIELDCOUNT" value="15">
-<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKMTI0ODc4MzkzMQ8WBB4EX0JTQwUFQUNDTk8eBF9CU0kCARYCZg9kFgICAQ9kFgICAw9kFgICAQ9kFgICAQ9kFgZmD2QWAgIFDxYCHgdWaXNpYmxlaGQCCA8WAh4Fc3R5bGUFhQF3aWR0aDoxOTBweDtwYWRkaW5nOjAgMTBweDtoZWlnaHQ6MTAwJTtiYWNrZ3JvdW5kLWNvbG9yOiNDNEQzRTM7Ym9yZGVyLXRvcDoxcHggc29saWQgIzQ0NDtib3JkZXItYm90dG9tOjFweCBzb2xpZCAjNDQ0O2Rpc3BsYXk6YmxvY2s7FgICAQ9kFgQCAw8QDxYCHgtfIURhdGFCb3VuZGdkDxYkAgECAgIDAgQCBQIGAgcCCAIJAgoCCwIMAg0CDgIPAhACEQISAhMCFAIVAhYCFwIYAhkCGgIbAhwCHQIeAh8CIAIhAiICIwIkFiQQBQsxMjIxMDMyMDAyOQULMTIyMTAzMjAwMjln">
-<input type="hidden" name="__VIEWSTATE1" id="__VIEWSTATE1" value="EAULMTIyMjgwNjAwMzkFCzEyMjI4MDYwMDM5ZxAFCzEyMjQyOTUwMDI1BQsxMjI0Mjk1MDAyNWcQBQsxMjI0Mjk5MDAzOQULMTIyNDI5OTAwMzlnEAULMTIyNDMwMTAwMTkFCzEyMjQzMDEwMDE5ZxAFCzEyMjU2MTkwMDEzBQsxMjI1NjE5MDAxM2cQBQsxMjQ5NjQ3MDAyNwULMTI0OTY0NzAwMjdnEAULMTI0OTY1MjAwMTEFCzEyNDk2NTIwMDExZxAFCzE1OTI4NjcwMDQ5BQsxNTkyODY3MDA0OWcQBQsxNTkzNjE4MDAxNQULMTU5MzYxODAwMTVnEAULMTYwODczMTAwMTMFCzE2MDg3MzEwMDEzZxAFCzE2MTIxMDUwMDEzBQsxNjEyMTA1MDAxM2cQBQsxNjEyMTA2MDAxMgULMTYxMjEwNjAwMTJnEAULMTYxOTM1NTAwMjMFCzE2MTkzNTUwMDIzZxAFCzE2MjM1Mjkw">
-<input type="hidden" name="__VIEWSTATE2" id="__VIEWSTATE2" value="MDI2BQsxNjIzNTI5MDAyNmcQBQsxNjMyNDA1MDAyNgULMTYzMjQwNTAwMjZnEAULMTY0MjIyODAwMTIFCzE2NDIyMjgwMDEyZxAFCzE2NDIyMjkwMDExBQsxNjQyMjI5MDAxMWcQBQsxNjU1Njc2MDAxMQULMTY1NTY3NjAwMTFnEAULMTY2MzIwMjAwMjYFCzE2NjMyMDIwMDI2ZxAFCzE2NjQwMjAwMDE2BQsxNjY0MDIwMDAxNmcQBQsxNjY2OTU0MDAyOQULMTY2Njk1NDAwMjlnEAULMTY2Njk1NjAwMjcFCzE2NjY5NTYwMDI3ZxAFCzI3MDQ3OTcwMDEwBQsyNzA0Nzk3MDAxMGcQBQsyNzQ1MDMyMDAxOAULMjc0NTAzMjAwMThnEAULMjc0OTIyNTAwMTcFCzI3NDkyMjUwMDE3ZxAFCzI3NjEwODcwMDM1BQsyNzYxMDg3MDAzNWcQBQsyNzYxMDg4MDAyNgULMjc2MTA4">
-<input type="hidden" name="__VIEWSTATE3" id="__VIEWSTATE3" value="ODAwMjZnEAULMjc2MTA4OTAwMjUFCzI3NjEwODkwMDI1ZxAFCzI3NjEwOTAwMDIyBQsyNzYxMDkwMDAyMmcQBQsyNzYxMDkxMDAyMQULMjc2MTA5MTAwMjFnEAULMjc2MTA5MjAwMjAFCzI3NjEwOTIwMDIwZxAFCzI3NjEwOTMwMDI5BQsyNzYxMDkzMDAyOWcQBQsyNzg4ODYwMDAxNQULMjc4ODg2MDAwMTVnEAULMjc5NjM0NjAwMTIFCzI3OTYzNDYwMDEyZxAFCzI4MzU1NTkwMDEwBQsyODM1NTU5MDAxMGdkZAIFD2QWDgIFDxYGHwMFFXRleHQtZGVjb3JhdGlvbjpub25lOx4Hb25jbGljawUgamF2YXNjcmlwdDpyZXR1cm4gVVJMc1dhcm5pbmcoKTseCGRpc2FibGVkBQR0cnVlZAIHDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFz">
-<input type="hidden" name="__VIEWSTATE4" id="__VIEWSTATE4" value="Y3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIJDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAILDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAINDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIPDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIRDxYGHwYFBHRydWUfAwUVdGV4dC1kZWNvcmF0aW9uOm5vbmU7HwUFIGphdmFz">
-<input type="hidden" name="__VIEWSTATE5" id="__VIEWSTATE5" value="Y3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7ZAIJD2QWBgIPDxAPFgIfBGdkEBUCBUJpbGxzDEJpbGwgQXJjaGl2ZRUCATEBMhQrAwJnZxYBZmQCEw8QDxYCHwRnZBAVJQNBTEwLMTIyMTAzMjAwMjkLMTIyMjgwNjAwMzkLMTIyNDI5NTAwMjULMTIyNDI5OTAwMzkLMTIyNDMwMTAwMTkLMTIyNTYxOTAwMTMLMTI0OTY0NzAwMjcLMTI0OTY1MjAwMTELMTU5Mjg2NzAwNDkLMTU5MzYxODAwMTULMTYwODczMTAwMTMLMTYxMjEwNTAwMTMLMTYxMjEwNjAwMTILMTYxOTM1NTAwMjMLMTYyMzUyOTAwMjYLMTYzMjQwNTAwMjYLMTY0MjIyODAwMTILMTY0MjIyOTAwMTELMTY1NTY3NjAwMTELMTY2MzIwMjAwMjYLMTY2NDAyMDAwMTYLMTY2Njk1NDAwMjkLMTY2Njk1NjAw">
-<input type="hidden" name="__VIEWSTATE6" id="__VIEWSTATE6" value="MjcLMjcwNDc5NzAwMTALMjc0NTAzMjAwMTgLMjc0OTIyNTAwMTcLMjc2MTA4NzAwMzULMjc2MTA4ODAwMjYLMjc2MTA4OTAwMjULMjc2MTA5MDAwMjILMjc2MTA5MTAwMjELMjc2MTA5MjAwMjALMjc2MTA5MzAwMjkLMjc4ODg2MDAwMTULMjc5NjM0NjAwMTILMjgzNTU1OTAwMTAVJQALMTIyMTAzMjAwMjkLMTIyMjgwNjAwMzkLMTIyNDI5NTAwMjULMTIyNDI5OTAwMzkLMTIyNDMwMTAwMTkLMTIyNTYxOTAwMTMLMTI0OTY0NzAwMjcLMTI0OTY1MjAwMTELMTU5Mjg2NzAwNDkLMTU5MzYxODAwMTULMTYwODczMTAwMTMLMTYxMjEwNTAwMTMLMTYxMjEwNjAwMTILMTYxOTM1NTAwMjMLMTYyMzUyOTAwMjYLMTYzMjQwNTAwMjYLMTY0MjIyODAwMTILMTY0MjIyOTAw">
-<input type="hidden" name="__VIEWSTATE7" id="__VIEWSTATE7" value="MTELMTY1NTY3NjAwMTELMTY2MzIwMjAwMjYLMTY2NDAyMDAwMTYLMTY2Njk1NDAwMjkLMTY2Njk1NjAwMjcLMjcwNDc5NzAwMTALMjc0NTAzMjAwMTgLMjc0OTIyNTAwMTcLMjc2MTA4NzAwMzULMjc2MTA4ODAwMjYLMjc2MTA4OTAwMjULMjc2MTA5MDAwMjILMjc2MTA5MTAwMjELMjc2MTA5MjAwMjALMjc2MTA5MzAwMjkLMjc4ODg2MDAwMTULMjc5NjM0NjAwMTILMjgzNTU1OTAwMTAUKwMlZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2dnZ2RkAhsPFCsAAg8WBB8EZx4LXyFJdGVtQ291bnQCD2RkFgJmD2QWAgIZDxYCHgdjb2xzcGFuBQE5ZBgEBR5fX0NvbnRyb2xzUmVxdWlyZVBvc3RCYWNrS2V5X18WPwUXY3RsMDAkbG9naW5TdGF0dXMkY3Rs">
-<input type="hidden" name="__VIEWSTATE8" id="__VIEWSTATE8" value="MDEFF2N0bDAwJGxvZ2luU3RhdHVzJGN0bDAzBRljdGwwMCRNYWluJGx2QmlsbHMkY2hrQWxsBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDAkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsMCRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwwJGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwwJGJ0RmlsZQUbY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxJGNiBSFjdGwwMCRNYWluJGx2QmlsbHMkY3RybDEkYnRuQ2hhcnQFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMSRidFZpZXcFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMSRidEZpbGUFG2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMiRjYgUhY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwyJGJ0bkNo">
-<input type="hidden" name="__VIEWSTATE9" id="__VIEWSTATE9" value="YXJ0BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDIkYnRWaWV3BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDIkYnRGaWxlBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDMkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsMyRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwzJGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwzJGJ0RmlsZQUbY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw0JGNiBSFjdGwwMCRNYWluJGx2QmlsbHMkY3RybDQkYnRuQ2hhcnQFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNCRidFZpZXcFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNCRidEZpbGUFG2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNSRjYgUhY3RsMDAkTWFpbiRsdkJp">
-<input type="hidden" name="__VIEWSTATE10" id="__VIEWSTATE10" value="bGxzJGN0cmw1JGJ0bkNoYXJ0BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDUkYnRWaWV3BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDUkYnRGaWxlBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDYkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsNiRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw2JGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw2JGJ0RmlsZQUbY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw3JGNiBSFjdGwwMCRNYWluJGx2QmlsbHMkY3RybDckYnRuQ2hhcnQFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNyRidFZpZXcFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNyRidEZpbGUFG2N0bDAwJE1haW4kbHZCaWxscyRjdHJsOCRjYgUh">
-<input type="hidden" name="__VIEWSTATE11" id="__VIEWSTATE11" value="Y3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw4JGJ0bkNoYXJ0BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDgkYnRWaWV3BR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDgkYnRGaWxlBRtjdGwwMCRNYWluJGx2QmlsbHMkY3RybDkkY2IFIWN0bDAwJE1haW4kbHZCaWxscyRjdHJsOSRidG5DaGFydAUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw5JGJ0VmlldwUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw5JGJ0RmlsZQUcY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRjYgUiY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRidG5DaGFydAUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRidFZpZXcFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTAkYnRGaWxlBRxjdGwwMCRNYWlu">
-<input type="hidden" name="__VIEWSTATE12" id="__VIEWSTATE12" value="JGx2QmlsbHMkY3RybDExJGNiBSJjdGwwMCRNYWluJGx2QmlsbHMkY3RybDExJGJ0bkNoYXJ0BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDExJGJ0VmlldwUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMSRidEZpbGUFHGN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTIkY2IFImN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTIkYnRuQ2hhcnQFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsMTIkYnRWaWV3BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDEyJGJ0RmlsZQUcY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMyRjYgUiY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMyRidG5DaGFydAUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMyRidFZpZXcFIGN0bDAwJE1haW4kbHZCaWxs">
-<input type="hidden" name="__VIEWSTATE13" id="__VIEWSTATE13" value="cyRjdHJsMTMkYnRGaWxlBRxjdGwwMCRNYWluJGx2QmlsbHMkY3RybDE0JGNiBSJjdGwwMCRNYWluJGx2QmlsbHMkY3RybDE0JGJ0bkNoYXJ0BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDE0JGJ0VmlldwUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxNCRidEZpbGUFHGN0bDAwJE1haW4kbHZCaWxscyR2aWV3UGFnZXIPFCsAAgIBAg9kBRJjdGwwMCRNYWluJGx2QmlsbHMPFCsACmRkZGRkZBUFCUNhdGFsb2dJRAVEQl9JRAZEb2NLZXkIRG9jUGFnZXMHRG9jVHlwZRQrAA8UKwAFAgEChwUCxAQCAQUDQUZQFCsABQIBAisCuQQCAQUDQUZQFCsABQIBAoUEAqkgAgIFA0FGUBQrAAUCAQJoApUhAgIFA0FGUBQrAAUCAQKFBALDIQICBQNBRlAUKwAFAgECaAKzIgICBQNB">
-<input type="hidden" name="__VIEWSTATE14" id="__VIEWSTATE14" value="RlAUKwAFAgECswQC7RwCAgUDQUZQFCsABQIBAmgCrSICAgUDQUZQFCsABQIBAoUEArchAgIFA0FGUBQrAAUCAQJoAqUiAgIFA0FGUBQrAAUCAQKFBAK1IQICBQNBRlAUKwAFAgECaAKjIgICBQNBRlAUKwAFAgEChQQCuyECAgUDQUZQFCsABQIBAmgCqSICAgUDQUZQFCsABQIBAoUEArkhAgIFA0FGUAIPFCsABQIBAv4CApIoAgQFA0FGUGQFDmN0bDAwJE1haW5NZW51Dw9kBRdCaWxsc1xWaWV3IEJpbGwgSGlzdG9yeWRxDssRCwc3iJ1RV7/Xidqve3VAIA==">
+<input type="hidden" name="__VIEWSTATEFIELDCOUNT" id="__VIEWSTATEFIELDCOUNT" value="12">
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUJNjc3NzY2NzAwDxYCHgRfQlNJAgEWAmYPZBYCAgEPZBYCAgMPZBYCAgEPZBYCAgEPZBYIZg9kFgICBQ8WAh4HVmlzaWJsZWhkAgYPFgIfAWhkAggPFgIeBXN0eWxlBYUBd2lkdGg6MTkwcHg7cGFkZGluZzowIDEwcHg7aGVpZ2h0OjEwMCU7YmFja2dyb3VuZC1jb2xvcjojQzREM0UzO2JvcmRlci10b3A6MXB4IHNvbGlkICM0NDQ7Ym9yZGVyLWJvdHRvbToxcHggc29saWQgIzQ0NDtkaXNwbGF5OmJsb2NrOxYCAgEPZBYEAgMPEA8WAh4LXyFEYXRhQm91bmRnZA8WJAIBAgICAwIEAgUCBgIHAggCCQIKAgsCDAINAg4CDwIQAhECEgITAhQCFQIWAhcCGAIZAhoCGwIcAh0CHgIfAiACIQIiAiMCJBYkEAULMTIyMTAzMjAwMjkFCzEyMjEwMzIwMDI5ZxAFCzEy">
+<input type="hidden" name="__VIEWSTATE1" id="__VIEWSTATE1" value="MjI4MDYwMDM5BQsxMjIyODA2MDAzOWcQBQsxMjI0Mjk1MDAyNQULMTIyNDI5NTAwMjVnEAULMTIyNDI5OTAwMzkFCzEyMjQyOTkwMDM5ZxAFCzEyMjQzMDEwMDE5BQsxMjI0MzAxMDAxOWcQBQsxMjI1NjE5MDAxMwULMTIyNTYxOTAwMTNnEAULMTI0OTY0NzAwMjcFCzEyNDk2NDcwMDI3ZxAFCzEyNDk2NTIwMDExBQsxMjQ5NjUyMDAxMWcQBQsxNTkyODY3MDA0OQULMTU5Mjg2NzAwNDlnEAULMTU5MzYxODAwMTUFCzE1OTM2MTgwMDE1ZxAFCzE2MDg3MzEwMDEzBQsxNjA4NzMxMDAxM2cQBQsxNjEyMTA1MDAxMwULMTYxMjEwNTAwMTNnEAULMTYxMjEwNjAwMTIFCzE2MTIxMDYwMDEyZxAFCzE2MTkzNTUwMDIzBQsxNjE5MzU1MDAyM2cQBQsxNjIzNTI5MDAyNgUL">
+<input type="hidden" name="__VIEWSTATE2" id="__VIEWSTATE2" value="MTYyMzUyOTAwMjZnEAULMTYzMjQwNTAwMjYFCzE2MzI0MDUwMDI2ZxAFCzE2NDIyMjgwMDEyBQsxNjQyMjI4MDAxMmcQBQsxNjQyMjI5MDAxMQULMTY0MjIyOTAwMTFnEAULMTY1NTY3NjAwMTEFCzE2NTU2NzYwMDExZxAFCzE2NjMyMDIwMDI2BQsxNjYzMjAyMDAyNmcQBQsxNjY0MDIwMDAxNgULMTY2NDAyMDAwMTZnEAULMTY2Njk1NDAwMjkFCzE2NjY5NTQwMDI5ZxAFCzE2NjY5NTYwMDI3BQsxNjY2OTU2MDAyN2cQBQsyNzA0Nzk3MDAxMAULMjcwNDc5NzAwMTBnEAULMjc0NTAzMjAwMTgFCzI3NDUwMzIwMDE4ZxAFCzI3NDkyMjUwMDE3BQsyNzQ5MjI1MDAxN2cQBQsyNzYxMDg3MDAzNQULMjc2MTA4NzAwMzVnEAULMjc2MTA4ODAwMjYFCzI3NjEwODgwMDI2">
+<input type="hidden" name="__VIEWSTATE3" id="__VIEWSTATE3" value="ZxAFCzI3NjEwODkwMDI1BQsyNzYxMDg5MDAyNWcQBQsyNzYxMDkwMDAyMgULMjc2MTA5MDAwMjJnEAULMjc2MTA5MTAwMjEFCzI3NjEwOTEwMDIxZxAFCzI3NjEwOTIwMDIwBQsyNzYxMDkyMDAyMGcQBQsyNzYxMDkzMDAyOQULMjc2MTA5MzAwMjlnEAULMjc4ODg2MDAwMTUFCzI3ODg4NjAwMDE1ZxAFCzI3OTYzNDYwMDEyBQsyNzk2MzQ2MDAxMmcQBQsyODM1NTU5MDAxMAULMjgzNTU1OTAwMTBnZGQCBQ9kFg4CBQ8WBh8CBRV0ZXh0LWRlY29yYXRpb246bm9uZTseB29uY2xpY2sFIGphdmFzY3JpcHQ6cmV0dXJuIFVSTHNXYXJuaW5nKCk7HghkaXNhYmxlZAUEdHJ1ZWQCBw8WBh8FBQR0cnVlHwIFFXRleHQtZGVjb3JhdGlvbjpub25lOx8EBSBqYXZhc2NyaXB0">
+<input type="hidden" name="__VIEWSTATE4" id="__VIEWSTATE4" value="OnJldHVybiBVUkxzV2FybmluZygpO2QCCQ8WBh8FBQR0cnVlHwIFFXRleHQtZGVjb3JhdGlvbjpub25lOx8EBSBqYXZhc2NyaXB0OnJldHVybiBVUkxzV2FybmluZygpO2QCCw8WBh8FBQR0cnVlHwIFFXRleHQtZGVjb3JhdGlvbjpub25lOx8EBSBqYXZhc2NyaXB0OnJldHVybiBVUkxzV2FybmluZygpO2QCDQ8WBh8FBQR0cnVlHwIFFXRleHQtZGVjb3JhdGlvbjpub25lOx8EBSBqYXZhc2NyaXB0OnJldHVybiBVUkxzV2FybmluZygpO2QCDw8WBh8FBQR0cnVlHwIFFXRleHQtZGVjb3JhdGlvbjpub25lOx8EBSBqYXZhc2NyaXB0OnJldHVybiBVUkxzV2FybmluZygpO2QCEQ8WBh8FBQR0cnVlHwIFFXRleHQtZGVjb3JhdGlvbjpub25lOx8EBSBqYXZhc2NyaXB0">
+<input type="hidden" name="__VIEWSTATE5" id="__VIEWSTATE5" value="OnJldHVybiBVUkxzV2FybmluZygpO2QCCQ9kFgwCCw8WAh4HZGlzcGxheQUEbm9uZWQCDw9kFgICAw8PFgIeBFRleHRlZGQCFQ8WAh8BaGQCFw8WAh8CBQ1kaXNwbGF5Om5vbmU7ZAIbDxQrAAIPFgQfA2ceC18hSXRlbUNvdW50AgxkZBYCZg9kFgICFA8WAh4HY29sc3BhbgUCMTFkAh8PDxYCHwFoZGQYBAUeX19Db250cm9sc1JlcXVpcmVQb3N0QmFja0tleV9fFiQFF2N0bDAwJGxvZ2luU3RhdHVzJGN0bDAxBRdjdGwwMCRsb2dpblN0YXR1cyRjdGwwMwUZY3RsMDAkTWFpbiRsdkJpbGxzJGNoa0FsbAUeY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwwJGNiUGF5BSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDAkYnRWaWV3QgUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmww">
+<input type="hidden" name="__VIEWSTATE6" id="__VIEWSTATE6" value="JGJ0UGF5QgUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxJGJ0Vmlld0IFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMSRidFBheUIFHmN0bDAwJE1haW4kbHZCaWxscyRjdHJsMiRjYlBheQUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwyJGJ0Vmlld0IFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMiRidFBheUIFHmN0bDAwJE1haW4kbHZCaWxscyRjdHJsMyRjYlBheQUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwzJGJ0Vmlld0IFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsMyRidFBheUIFHmN0bDAwJE1haW4kbHZCaWxscyRjdHJsNCRjYlBheQUgY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw0JGJ0Vmlld0IFH2N0bDAwJE1haW4kbHZCaWxscyRjdHJsNCRidFBheUIFIGN0">
+<input type="hidden" name="__VIEWSTATE7" id="__VIEWSTATE7" value="bDAwJE1haW4kbHZCaWxscyRjdHJsNSRidFZpZXdCBR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDUkYnRQYXlCBR5jdGwwMCRNYWluJGx2QmlsbHMkY3RybDYkY2JQYXkFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsNiRidFZpZXdCBR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDYkYnRQYXlCBR5jdGwwMCRNYWluJGx2QmlsbHMkY3RybDckY2JQYXkFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsNyRidFZpZXdCBR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDckYnRQYXlCBR5jdGwwMCRNYWluJGx2QmlsbHMkY3RybDgkY2JQYXkFIGN0bDAwJE1haW4kbHZCaWxscyRjdHJsOCRidFZpZXdCBR9jdGwwMCRNYWluJGx2QmlsbHMkY3RybDgkYnRQYXlCBSBjdGwwMCRNYWluJGx2">
+<input type="hidden" name="__VIEWSTATE8" id="__VIEWSTATE8" value="QmlsbHMkY3RybDkkYnRWaWV3QgUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmw5JGJ0UGF5QgUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRjYlBheQUhY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMCRidFZpZXdCBSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDEwJGJ0UGF5QgUfY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMSRjYlBheQUhY3RsMDAkTWFpbiRsdkJpbGxzJGN0cmwxMSRidFZpZXdCBSBjdGwwMCRNYWluJGx2QmlsbHMkY3RybDExJGJ0UGF5QgUcY3RsMDAkTWFpbiRsdkJpbGxzJHZpZXdQYWdlcg8UKwACAgECDGQFEmN0bDAwJE1haW4kbHZCaWxscw8UKwAKZGRkZGRkFQsJQ2F0YWxvZ0lEBURCX0lEBkRvY0tleQhEb2NQYWdlcxFDdXJyZW50QmFsYW5j">
+<input type="hidden" name="__VIEWSTATE9" id="__VIEWSTATE9" value="ZUR1ZQdEb2NUeXBlDE5vdGljZUFtb3VudA1QYXltZW50TWV0aG9kEEFjY291bnRNYXJrZXRTZWcIQ29tcENvZGUNU2h1dE9mZk5vblBheRQrAAwUKwALAgECcQLNBgICBQczNTIxLjczBQNBRlAFBDAuMDAFAUkFA0NPTQUCMzAFAU4UKwALAgECyAICqEECAwUEMC4wMAUDQUZQBQQwLjAwBQFJBQNDT00FAjcwBQFOFCsACwIBAskCAtciAgIFBDguMzUFA0FGUAUEMC4wMAUBSQUDQ09NBQI3MAUBThQrAAsCAQLJAgLZIgICBQcyOTg4LjU5BQNBRlAFBDAuMDAFAUkFA0NPTQUCNzAFAU4UKwALAgECyQICrCgCAwUIMzEwODUuNzQFA0FGUAUEMC4wMAUBSQUDQ09NBQI3MAUBThQrAAsCAQLKAgIRAgIFBy0xNDguNTQFA0FGUAUEMC4wMAUBSQUEQ09NQwUCNzAFAU4UKwAL">
+<input type="hidden" name="__VIEWSTATE10" id="__VIEWSTATE10" value="AgEC/gICkigCBAUJMjUyMDQ4Ljg2BQNBRlAFBDAuMDAFAUkFA0NPTQUCNzAFAU4UKwALAgEC/gICuCgCAgUHODU5OS40MgUDQUZQBQQwLjAwBQFJBQNDT00FAjcwBQFOFCsACwIBAoIDAoeEAQICBQY2MzguMDIFA0FGUAUEMC4wMAUBSQUDQ09NBQIzMAUBThQrAAsCAQKXAwLrSAICBQQwLjAwBQNBRlAFBDAuMDAFAUkFA0NPTQUCMzAFAU4UKwALAgECmQMCrwQCAgUFMTUuMDAFA0FGUAUEMC4wMAUBSQUDQ09NBQIzMAUBThQrAAsCAQKFBAKpIAICBQUyNy42NQUDQUZQBQQwLjAwBQFJBQNDT00FAjMwBQFOAgwUKwALAgECcQLNBgICBQczNTIxLjczBQNBRlAFBDAuMDAFAUkFA0NPTQUCMzAFAU5kBQ5jdGwwMCRNYWluTWVudQ8PZAUTSG9tZVxWaWV3IEhvbWUgUGFn">
+<input type="hidden" name="__VIEWSTATE11" id="__VIEWSTATE11" value="ZWR2ryo8EezheYc/YQCXy5eypRu/3Q==">
 </div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/NSTAR/WebResource.axd?d=CKUkxvg3qrxocOIE45_hxWZhBD8OBz4fgPgLy9lO8j9vU_mX9VFUOQojOwaZqSbLe3sv7uB88ZBaEHNJjglEHlHL0y81&amp;t=634601015982615611" type="text/javascript"></script>
+
+
+<script src="/NSTAR/Resources/Scripts/jquery.custom.min.js" type="text/javascript"></script>
+<script src="/NSTAR/Resources/Scripts/Main.js" type="text/javascript"></script>
+<script src="/NSTAR/ScriptResource.axd?d=0ECkm1V4nbRSJWcp4P7EkDEMH69GtngV5_x-I31u3c4Nwel9povQW2aHfyBdBkZ9ASYOm4DnPMbD044fMAzxaNkeViuNSReNI_KaXw9gp28tRUC9ufaqRDUpIsbwX7fyewDC6Q57rX6Ipol95_aJc4FdlDe5kuc7ShjUeQ310qGvuz6H0&amp;t=ffffffff8dc250fc" type="text/javascript"></script>
+<script src="/NSTAR/ScriptResource.axd?d=juuTuATDd54t91HtIYktWR1UR4qWQCeqhX3nUTWJx6yDYmVdtoMhBsDaaWdNVJ8s4qafUI1VrU8FObq6rMkkIR52SHzdcznQUXmBeLoq4IwwSnMvUiNSh70BiByUCOtMKedB_v4HkBrSVVF1R4Udg-wzCaCUuaT6Nl_J9NlrStwKuhUB0&amp;t=ffffffff8dc250fc" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+var PageMethods = function() {
+PageMethods.initializeBase(this);
+this._timeout = 0;
+this._userContext = null;
+this._succeeded = null;
+this._failed = null;
+}
+PageMethods.prototype = {
+_get_path:function() {
+ var p = this.get_path();
+ if (p) return p;
+ else return PageMethods._staticInstance.get_path();},
+UpdateNSTARUrl:function(ctrl,accNo,servicename,succeededCallback, failedCallback, userContext) {
+return this._invoke(this._get_path(), 'UpdateNSTARUrl',false,{ctrl:ctrl,accNo:accNo,servicename:servicename},succeededCallback,failedCallback,userContext); },
+UpdateBalance:function(ctrl,accNo,servicename,succeededCallback, failedCallback, userContext) {
+return this._invoke(this._get_path(), 'UpdateBalance',false,{ctrl:ctrl,accNo:accNo,servicename:servicename},succeededCallback,failedCallback,userContext); }}
+PageMethods.registerClass('PageMethods',Sys.Net.WebServiceProxy);
+PageMethods._staticInstance = new PageMethods();
+PageMethods.set_path = function(value) { PageMethods._staticInstance.set_path(value); }
+PageMethods.get_path = function() { return PageMethods._staticInstance.get_path(); }
+PageMethods.set_timeout = function(value) { PageMethods._staticInstance.set_timeout(value); }
+PageMethods.get_timeout = function() { return PageMethods._staticInstance.get_timeout(); }
+PageMethods.set_defaultUserContext = function(value) { PageMethods._staticInstance.set_defaultUserContext(value); }
+PageMethods.get_defaultUserContext = function() { return PageMethods._staticInstance.get_defaultUserContext(); }
+PageMethods.set_defaultSucceededCallback = function(value) { PageMethods._staticInstance.set_defaultSucceededCallback(value); }
+PageMethods.get_defaultSucceededCallback = function() { return PageMethods._staticInstance.get_defaultSucceededCallback(); }
+PageMethods.set_defaultFailedCallback = function(value) { PageMethods._staticInstance.set_defaultFailedCallback(value); }
+PageMethods.get_defaultFailedCallback = function() { return PageMethods._staticInstance.get_defaultFailedCallback(); }
+PageMethods.set_path("/NSTAR/Secure/Home.aspx");
+PageMethods.UpdateNSTARUrl= function(ctrl,accNo,servicename,onSuccess,onFailed,userContext) {PageMethods._staticInstance.UpdateNSTARUrl(ctrl,accNo,servicename,onSuccess,onFailed,userContext); }
+PageMethods.UpdateBalance= function(ctrl,accNo,servicename,onSuccess,onFailed,userContext) {PageMethods._staticInstance.UpdateBalance(ctrl,accNo,servicename,onSuccess,onFailed,userContext); }
+//]]>
+</script>
+
+<div>
+
+    <input type="hidden" name="__PREVIOUSPAGE" id="__PREVIOUSPAGE" value="vQvg-ctwHNfI4IiRvLv8BK64zsUcbHXbcoHgfTVG9fIYaFIMaNrd0KZgZoFW6Hn8W0211z1scZCXYhDLSk2CkNd-sTmI36iy_ZyC389JT1po0KZ40">
+    <input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWWQKc7tikCgLY1OD0CwLAgpxNAvLyy8gHAqWxrtkEAuHj9oUOAuC/028CyLTi3wICg6Gq1wsCidq/uggC8uyUtQICxc7g0wcC7KPVrAkCg+nP+AUCqIjb2AICk4T3vQkCs7iGhwkC1Yez3gYC8/G03AICh4LWyAYCh76ijgIC5+D5pg8CjJCqrAUCz9Wt7QoCg9GCTwLe1aBRAvLsp8sGAtqb9dYMAqPeo/cIAvrOz+8GAo6YoccCAuip58kGAryer6sOAvSSrd8LAuC1i+ACAsCcwbgPAt7jyrEMAqPo9oALAtHWqa8JApeqncIHAt+d75kBAqHvqIcCAo7f9KIHApnHglYC0MWA/gwCzIO6gwYCtLC0nAQCtdz2wQIC28W5+wUCjt+ctwECtLDI9Q4CtdyKhwICi9ma/QYCjt+wyAwCtLD8wAUCtdyevQECu4eFwgcCjt+kogkCmcfSwg4C0MWw6Q4CwOrj3w4Cmcfm8wcC0MXEwg4CqO7N0gUCjt/MtgMCmcf6zAIC0MXYhw4C2IHvtgsCjt/g4gcCmcfu/AUC0MXsuA0CnPD4nQoCjt/UoQsCmcfirAQC0MXgVAK39MM5ApnH9t0NAtDF9C0ChNn94wkClLOG8AcCvZf10g4C1eqK7QIC2PClkA8C87GG8AcC/O700g4CtOmK7QICi+7Qkg8C6palmA0C5cmQ/Qq47XhHZL4m8VnhP6lyk5QqbiR3xA==">
+</div>
+        <!-- TODO: change the class name here to view the page in design mode -->
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ctl00$ScriptManager1', document.getElementById('aspnetForm'));
+Sys.WebForms.PageRequestManager.getInstance()._updateControls([], [], [], 90);
+//]]>
+</script>
+
+        <script language="javascript" type="text/javascript">
+            // JScript function to Toggle containers between expanded and collapsed state
+            function Toggle1(img, containerId) {
+                var prefix = img.id.replace("imgDesc", "");
+                if ( img.id.indexOf("imgDesc1") > 0 )
+                    prefix = img.id.replace("imgDesc1", "");
+
+                var container = document.getElementById(prefix + containerId);
+
+                if (img.src.indexOf("collapse.gif") >= 0) {
+                    img.src = img.src.replace("collapse.gif", "expand.gif");
+                    img.alt = "Expand";
+                    container.className = "Collapsed";
+                } else {
+                    img.src = img.src.replace("expand.gif", "collapse.gif");
+                    img.alt = "Collapse";
+                    container.className = "Expanded";
+                }
+            }
+            function URLsWarning() {
+                alert('Please choose account from drop-down list above and click on link again!');
+                return false;
+            }
+            function UpdateURL(obj) {
+                var prefix = obj.id.replace("ddlAccounts", "");
+                if (obj.selectedIndex > 0) {
+                    var accno = obj.options[obj.selectedIndex].value;
+                    if (accno != null && accno != "") {
+                        PageMethods.UpdateNSTARUrl(prefix + "aUpdatePhone", accno, "Telephone_Number_Update", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                        PageMethods.UpdateNSTARUrl(prefix + "aUpdateMail", accno, "Mailing_Address_Update", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                        PageMethods.UpdateNSTARUrl(prefix + "aReportPayment", accno, "Report_a_Payment", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                        PageMethods.UpdateNSTARUrl(prefix + "aStopService", accno, "Stop_Service", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                        PageMethods.UpdateNSTARUrl(prefix + "aTransferService", accno, "Transfer_Service", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                        PageMethods.UpdateNSTARUrl(prefix + "aSetupPaymentPlan", accno, "Payment_Plan", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                        PageMethods.UpdateNSTARUrl(prefix + "aBudgetBilling", accno, "Budget_Billing", UpdateURL_OnSucceeded, UpdateURL_OnFailed);
+                    }
+                }
+                else {
+                    var script = "javascript:var r=window.open('http://www.nstar.com');";
+                    var elem = document.getElementById(prefix + "aUpdatePhone");
+                    if (elem != null) {
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                        elem.onclick = function () { return URLsWarning(); }
+                    }
+                    elem = document.getElementById(prefix + "aUpdateMail");
+                    if (elem != null) {
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                        elem.onclick = function () { return URLsWarning(); }
+                    }
+                    elem = document.getElementById(prefix + "aReportPayment");
+                    if (elem != null) {
+                        elem.onclick = function () { return URLsWarning(); }
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                    }
+                    elem = document.getElementById(prefix + "aStopService");
+                    if (elem != null) {
+                        elem.onclick = function () { return URLsWarning(); }
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                    }
+                    elem = document.getElementById(prefix + "aTransferService");
+                    if (elem != null) {
+                        elem.onclick = function () { return URLsWarning(); }
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                    }
+                    elem = document.getElementById(prefix + "aSetupPaymentPlan");
+                    if (elem != null) {
+                        elem.onclick = function () { return URLsWarning(); }
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                    }
+                    elem = document.getElementById(prefix + "aBudgetBilling");
+                    if (elem != null) {
+                        elem.onclick = function () { return URLsWarning(); }
+                        elem.disabled = "true";
+                        elem.style.textDecoration = "none";
+                        elem.href = script;
+                    }
+                }
+            }
+
+            function UpdateURL_OnSucceeded(result, userContext, methodName) {
+                var spl = result.split("|||");
+                var id = spl[1].split("&id=");
+                $get(spl[0]).href = "javascript:var r=window.open('" + id[0] + "&id=" + id[1] + "', 'Service','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1'); "
+                //$get(spl[0]).href = "javascript:var r=window.open('" + id[0] + "&id=' + encodeURIComponent('" + id[1] + "'), 'Service','status=0,toolbar=0,location=0,menubar=0,scrollbars=1,resizable=1'); "
+                $get(spl[0]).onclick = "";
+                $get(spl[0]).disabled = "";
+                $get(spl[0]).style.textDecoration = "underline";
+            }
+
+            function UpdateURL_OnFailed(error) {
+                //alert(error.toString);
+                //$get(userContext.ctrl).href = "An error occured.";
+            }
+            function setPreview() {
+                //$('#formSearch').attr('target', '_blank');
+                //$('#formSearch').attr('action', 'http://www.nstar.com/nstaronline3_search/');
+                alert($('#formSearch').attr('action'));
+                $('#formSearch').submit();
+            }
+//            function doSubmit() {
+//                var target1 = 'http://';
+//                var target2 = 'www.nstar.com/';
+//                var target3 = 'nstaronline3_search/';
+
+//                var supertarget = target0 + target1 + target2 + target3;
+//                var theForm = document.getElementById("formSearch");
+//                alert(theForm);
+//                theForm.action = supertarget;
+//                theForm.target = '_blank';
+//                alert(theForm.action);
+//                theForm.submit();
+//            }
+        </script>
+        <table id="ctl00_PageContainer" class="PageContainer" border="0" cellpadding="0" cellspacing="0">
+    <tbody><tr>
+        <td>
+                </td>
+    </tr>
+    <tr>
+        <td id="ctl00_LeftBorder" class="LeftBorder">
+                    <div style="width: 100px;">
+                        &nbsp;
+                    </div>
+                </td>
+        <td style="background-color: #FFF; border-collapse: collapse;">
+                    <!-- #header: holds the logo and top links -->
+                    <div id="ctl00_HeaderContainer">
+                        <div id="header" class="header width95">
+                            <ul class="status">
+                                <li id="ctl00_liLoginName">
+                                    <span id="ctl00_loginName">Welcome: foo user</span>
+                                </li>
+                                <li id="ctl00_liLoginStatus"><span>
+                                    <a id="ctl00_loginStatus" href="javascript:__doPostBack('ctl00$loginStatus$ctl00','')" style="font-weight:bold">Logout</a>
+                                </span></li>
+
+                            </ul>
+                            <!--NOTE: Do NOT rename the ID for this control as it is used in several classes throughout the site-->
+
+                            <!--------------------- DEBUG -------------------->
+                            <!--------------------- DEBUG -------------------->
+                        </div>
+                    </div>
+                    <!-- #header end -->
+
+                <div id="wrapper">
+    <div id="headern">
+        <a name="top"></a>
+        <table width="100%"><tbody>
+            <tr>
+                <td rowspan="3" align="left" valign="top">
+                    <img src="../Resources/Images/nstar_logo.gif" alt="NSTAR Logo" border="0" height="42" width="176">
+                </td>
+                <td class="topnavalign" valign="top">
+                    <a href="http://www.nstar.com/about_nstar/" target="_blank" class="lktopbotnav">About NSTAR</a> |
+                    <a href="http://www.nstar.com/about_nstar/sustainability/" target="_blank" class="lktopbotnav">Sustainability</a> |
+                    <a href="http://www.nstarcareers.com/" target="_blank" class="lktopbotnav">Careers</a> |
+                    <a href="http://www.nstar.com/nstar_news/" target="_blank" class="lktopbotnav">News</a> |
+                    <a href="http://www.nu.com/investors/" target="_blank" class="lktopbotnav">Investor Relations</a>
+                </td>
+            </tr>
+
+        </tbody></table>
+        <table cellpadding="0" cellspacing="0" width="100%"><tbody>
+            <tr>
+                <td id="restab" align="left" valign="bottom">
+                    <a href="http://www.nstar.com/residential/" target="_blank"><img src="../Resources/Images/transparent.gif" id="ctl00_Img1" title="Go to the Residential home page" alt="Go to the Residential home page" border="0" height="20" width="90"></a>
+                </td>
+                <td id="comtab" align="left" valign="bottom">
+                    <a href="http://www.nstar.com/business/" target="_blank"><img src="../Resources/Images/transparent.gif" id="ctl00_Img2" title="Go to the Business home page" alt="Go to the Business home page" border="0" height="20" width="90"></a>
+                </td>
+                <td id="middletab" align="left" valign="bottom">&nbsp;
+                </td>
+                <td id="endtab" align="left" valign="bottom">&nbsp;
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+    </div>
+                    <!-- #content: holds all except site footer - causes footer to stick to bottom -->
+                    <div style="height: 0">
+                        <input id="txtSubmit" style="display: none; width: 0;">
+                        <input id="hidSubmitToken" name="_SubmitToken" type="hidden" value="130150093892886481">
+                    </div>
+                    <!-- #headerImg: holds the main header image or flash
+                    <div id="ctl00_LogoContainer" class="width100 alignMiddle headerImg" style="display:none;">
+                        <img id="ctl00_Logo" title="NSTAR" src="../Resources/Images/Logo.gif" alt="NSTAR" style="border-width:0px;float:Left" />
+
+                    </div>
+                    <div class="clear"></div>-->
+                    <!-- #menu: the main large box site menu -->
+                    <div id="ctl00_MenuContainer" class="MenuContainer width100">
+
+        <div class="MenuMain">
+            <div class="Menu-Horizontal">
+                <ul class="Menu">
+                    <li class="Menu-WithChildren Menu-ChildSelected Menu-FirstItem">
+                        <div class="Menu-Link Menu-ChildSelected">
+                            <a href="/NSTAR/Secure/Home.aspx#" class="Menu-Link Menu-ChildSelected" title="Home">
+                                Home</a>
+                        </div>
+                        <ul>
+                            <li class="Menu-Leaf Menu-Selected">
+                                <div class="Menu-Link Menu-Selected">
+                                    <a href="/NSTAR/Secure/Home.aspx" class="Menu-Link Menu-Selected" title="View Home Page">
+                                        View Home Page</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/Messages.aspx" class="Menu-Link" title="View Messages">
+                                        View Messages</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="Menu-WithChildren">
+                        <div class="Menu-Link">
+                            <a href="/NSTAR/Secure/Bills.aspx#" class="Menu-Link" title="Bills">
+                                Bills</a>
+                        </div>
+                        <ul>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/Bills.aspx" class="Menu-Link" title="View Bill History">
+                                        View Bill History</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/FiledBills.aspx" class="Menu-Link" title="View Filed Bills">
+                                        View Filed Bills</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="Menu-WithChildren">
+                        <div class="Menu-Link">
+                            <a href="/NSTAR/Secure/PayHistory.aspx#" class="Menu-Link" title="Payments">
+                                Payments</a>
+                        </div>
+                        <ul>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/PayHistory.aspx" class="Menu-Link" title="View Payment History">
+                                        View Payment History</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/PayAccounts.aspx" class="Menu-Link" title="View Payment Accounts">
+                                        View Payment Accounts</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/RecProfiles.aspx" class="Menu-Link" title="View Recurring Payment Schedule">
+                                        View Recurring Payment Schedule</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="Menu-WithChildren">
+                        <div class="Menu-Link">
+                            <a href="/NSTAR/Secure/ProfileEdit.aspx#" class="Menu-Link" title="Profile">
+                                Profile</a>
+                        </div>
+                        <ul>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/ProfileEdit.aspx" class="Menu-Link" title="Profile Information">
+                                        Profile Information</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/Notifications.aspx" class="Menu-Link" title="Notifications &amp; Reminders">
+                                        Notifications &amp; Reminders</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/Accounts.aspx" class="Menu-Link" title="Enrolled Accounts">
+                                        Enrolled Accounts</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/ChangePassword.aspx" class="Menu-Link" title="Change Password">
+                                        Change Password</a>
+                                </div>
+                            </li>
+                            <li class="Menu-Leaf">
+                                <div class="Menu-Link">
+                                    <a href="/NSTAR/Secure/SecretQuestion.aspx" class="Menu-Link" title="Change Security Questions">
+                                        Change Security Questions</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="Menu-Leaf">
+                        <div class="Menu-Link">
+                            <a href="/NSTAR/Secure/Contact.aspx" class="Menu-Link" title="Contact Us">
+                                Contact Us</a>
+                        </div>
+                    </li>
+                    <li class="Menu-Leaf">
+                        <div class="Menu-Link">
+                            <a href="http://www.nstar.com/ss3/ebill/ebill_user_faq.asp" class="Menu-Link" title="FAQ">
+                                FAQ</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+
+                        <div class="clear">
+                        </div>
+                    </div>
+                    <!-- #menu end -->
+                    <!-- #SiteMap: main box for site map -->
+
+                    <!-- #SiteMap end -->
+                    <!-- #page: holds the page content -->
+                    <div id="page" class="page">
+                        <!-- #columns: holds the columns of the page -->
+                        <div id="columns" class="columns">
+                          <input name="ctl00$hidPanelDisplay" type="hidden" id="ctl00_hidPanelDisplay" value="inline">
+                          <table border="0">
+                           <tbody><tr>
+
+                            <td id="ctl00_VerticalNav" class="VerticalNav" style="width:190px;padding:0 10px;height:100%;background-color:#C4D3E3;border-top:1px solid #444;border-bottom:1px solid #444;display:block;">
+                                <div id="ctl00_divSideMenu" style="">
+                                    <table width="100%" bgcolor="#C4D3E3" class="ALINK">
+                                        <tbody><tr>
+                                        <td><br>
+                                            <span id="ctl00_lblAccountNumber" style="color:Black;">Account:</span><br>
+                                            <select name="ctl00$ddlAccounts" id="ctl00_ddlAccounts" class="DropDownList" onchange="UpdateURL(this);">
+            <option selected="selected" value="-1">Select Account No.</option>
+            <option value="11110320029">11110320029</option>
+            <option value="11128060039">11128060039</option>
+            <option value="11142950025">11142950025</option>
+            <option value="11142990039">11142990039</option>
+            <option value="11143010019">11143010019</option>
+            <option value="11156190013">11156190013</option>
+            <option value="12496470011">12496470011</option>
+            <option value="12496520011">12496520011</option>
+            <option value="15928670049">15928670049</option>
+            <option value="15936180015">15936180015</option>
+            <option value="11087310013">11087310013</option>
+            <option value="11121010013">11121010013</option>
+            <option value="11121060012">11121060012</option>
+            <option value="11193550023">11193550023</option>
+            <option value="11235290026">11235290026</option>
+            <option value="11324010026">11324010026</option>
+            <option value="11411280012">11411280012</option>
+            <option value="11411290011">11411290011</option>
+            <option value="11556760011">11556760011</option>
+            <option value="11632020026">11632020026</option>
+            <option value="11640200011">11640200011</option>
+            <option value="11669540029">11669540029</option>
+            <option value="11669560011">11669560011</option>
+            <option value="11047970010">11047970010</option>
+            <option value="11450320018">11450320018</option>
+            <option value="11491150017">11491150017</option>
+            <option value="11610870035">11610870035</option>
+            <option value="11610880026">11610880026</option>
+            <option value="11610890025">11610890025</option>
+            <option value="11610900011">11610900011</option>
+            <option value="11610910021">11610910021</option>
+            <option value="11610920020">11610920020</option>
+            <option value="11610930029">11610930029</option>
+            <option value="11888600015">11888600015</option>
+            <option value="11963460012">11963460012</option>
+            <option value="28355590010">28355590010</option>
+
+        </select><br><br>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                          <td>
+                                            <fieldset id="ctl00_fsDynamicNLinks" class="Expanded">
+                                                <legend>
+                                                    <img src="../Resources/Images/collapse.gif" id="ctl00_imgDesc" alt="+" onclick="Toggle1(this, 'fsDynamicNLinks');" title="Collapse">
+                                                    Online Transactions</legend>
+                                                <p>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aBudgetBilling" style="text-decoration:none;" onclick="javascript:return URLsWarning();" disabled="true">Budget Billing</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aUpdateMail" disabled="true" style="text-decoration:none;" onclick="javascript:return URLsWarning();">Mailing Address Change</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aReportPayment" disabled="true" style="text-decoration:none;" onclick="javascript:return URLsWarning();">Report a Payment</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aStopService" disabled="true" style="text-decoration:none;" onclick="javascript:return URLsWarning();">Stop Service</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aTransferService" disabled="true" style="text-decoration:none;" onclick="javascript:return URLsWarning();">Transfer Service</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aUpdatePhone" disabled="true" style="text-decoration:none;" onclick="javascript:return URLsWarning();">Update Telephone Number</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com');" id="ctl00_aSetupPaymentPlan" disabled="true" style="text-decoration:none;" onclick="javascript:return URLsWarning();">Setup Payment Plan</a><br>
+                                                 </p>
+                                            </fieldset>
+                                          </td>
+                                        </tr>
+                                        <tr>
+                                        <td><br>
+                                            <fieldset id="ctl00_fsStaticNLinks" class="Expanded">
+                                                <legend>
+                                                    <img src="../Resources/Images/collapse.gif" id="ctl00_imgDesc1" alt="+" onclick="Toggle1(this, 'fsStaticNLinks');" title="Collapse">
+                                                    Important Information</legend>
+                                                <p>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com/residential/customer_information/highbill.asp');">Bill Higher Than Usual?</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com/residential/customer_information/billing_rights.asp');">Billing Rights</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com/residential/customer_information/mcc/');">Customer Communications</a><br>
+                                                    <a href="javascript:var r=window.open('http://c03.apogee.net/calcs/rescalc5x/Question.aspx?hostheader=nstar&utilityid=nstar');">Home Analyzer</a><br>
+                                                    <a href="javascript:var r=window.open('http://www.nstar.com/residential/account_services/understanding_bill/');">Understanding Your Bill</a>
+                                                 </p>
+                                            </fieldset>
+                                        </td>
+                                        </tr>
+                                        <tr>
+                                        <td><br>
+                                            <a href="javascript:var r=window.open('https://www.nstar.com/residential/account_services/gas_heating/hhpp/hhpp.asp');">
+                                            <img id="ctl00_Image1" title="Home Protection Plan" class="marginTop5" src="../Resources/Images/HomeProtection.jpg" alt="Home Protection Plan" style="border-width:0px;"></a>
+                                        </td>
+                                        </tr>
+                                    </tbody></table>
+                                </div>
+                            </td>
+
+
+                            <td width="100%" id="Content" class="Content">
+                            <!-- Content placeholder -->
+
+    <p></p>
+    <h1 id="ctl00_Main_pageHeadding">
+        Summary</h1>
+    <fieldset id="fsDescription" class="Expanded">
+        <legend>
+            <img src="../Resources/Images/collapse.gif" id="ctl00_Main_imgDesc" alt="+" onclick="Toggle(this, 'fsDescription');" title="Collapse">
+            Description</legend>
+        <p>
+            Welcome to NSTAR’s E-Bill. E-Bill provides customers a free, secure and user-friendly means of managing their NSTAR account online.
+        </p>
+    </fieldset>
+    <div id="ctl00_Main_divCashOnly" class="breakMedium" style="display:none" display="none">
+     &nbsp;</div>
+
+
+    <div class="breakMedium">
+        &nbsp;</div>
+    <table class="marginBottom15 width100" cellpadding="0" cellspacing="0">
+        <tbody><tr>
+            <td class="width65 alignTop">
+                <table class="width100" cellpadding="0" cellspacing="0">
+                    <tbody><tr>
+                        <td>
+                            <fieldset>
+                                <legend>
+                                    Recent Messages</legend>
+                                <div id="ctl00_Main_divRecentMessages" class="margin15 marginTop10">
+
+                                            <table class="width100" cellpadding="2">
+
+                                            <tbody><tr>
+                                                <td class="alignMiddle marginRight" style="white-space: nowrap; width: 20px; border-bottom: dashed 1px #DFDFDF;
+                                                    border-collapse: collapse;">
+                                                    <img title="Administrative message." src="../Resources/Images/user_comment.png" alt="Administrative message." style="border-width:0px;">
+                                                </td>
+                                                <td class="alignMiddle" style="border-bottom: dashed 1px #DFDFDF; border-collapse: collapse;">
+                                                    Jun 01 2013
+                                                    -
+                                                    <a id="ctl00_Main_rptMessages_ctl01_lnkShowDetail" class="bold" href='javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions("ctl00$Main$rptMessages$ctl01$lnkShowDetail", "", false, "", "Messages.aspx", false, true))'>Regarding Your Payment History</a>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td colspan="2" class="alignRight">
+                                                    <a href="Messages.aspx" style="padding: 2px 0 0 8px; background: URL(../Resources/Images/left_arrow.png) no-repeat left 60%;">
+                                                        Click here to view all your messages</a>
+                                                </td>
+                                            </tr>
+                                            </tbody></table>
+
+                                </div>
+                            </fieldset>
+                        </td>
+                    </tr>
+                </tbody></table>
+            </td>
+
+        </tr>
+    </tbody></table>
+    <div id="ctl00_Main_RightWraper" style="display:none;">
+        <div id="CanvasB" class="layerB">
+            <table>
+                <tbody><tr>
+                    <td id="ctl00_Main_tdInner" style="width:250px; color:White; text-align:center">Loading balance ...</td>
+
+                </tr>
+            </tbody></table>
+        </div>
+    </div>
+    <div>
+        <p style="font-weight: bold;">&nbsp;
+             Current Bills
+       </p>
+    </div>
+
+            <table id="tblBills" class="Grid">
+                <tbody><tr class="GridHeader">
+                    <th id="ctl00_Main_lvBills_colCheckbox" style="width:1em">
+                        <input id="ctl00_Main_lvBills_chkAll" type="checkbox" name="ctl00$Main$lvBills$chkAll" onclick="javascript:CheckAll(this); if(!checkTotalAmount()) this.checked=false;">
+                    </th>
+
+
+                            <th>
+
+                                    Account Number
+
+                            </th>
+
+                            <th>
+
+                                    Service Address
+
+                            </th>
+
+                            <th>
+
+                                    Type
+
+                            </th>
+
+                            <th>
+
+                                    Bill Amount
+
+                            </th>
+
+                            <th>
+
+                                    Bill Date
+
+                            </th>
+
+                            <th>
+
+                                    Please Pay By Date
+
+                            </th>
+
+                            <th>
+
+                                    Current Balance Due
+
+                            </th>
+
+                    <th>
+                        Action
+                    </th>
+                </tr>
+
+            <tr class="GridRow">
+                <td id="ctl00_Main_lvBills_ctrl0_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl0_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl0$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11193550023
+                        </td>
+
+                        <td>
+                            111 foo RD
+                        </td>
+
+                        <td>
+                            G
+                        </td>
+
+                        <td>
+                            3,521.73
+                        </td>
+
+                        <td>
+                            01/07/2013
+                        </td>
+
+                        <td>
+                            01/25/2013
+                        </td>
+
+                        <td>
+                            3521.73
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl0$btViewB" id="ctl00_Main_lvBills_ctrl0_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl0$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl0$btPayB" id="ctl00_Main_lvBills_ctrl0_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl0$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl0$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl0_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridAltRow">
+                <td id="ctl00_Main_lvBills_ctrl1_colCheckbox" class="Width2em">
+
+                </td>
+
+
+                        <td>
+                            11324010026
+                        </td>
+
+                        <td>
+                            706 S-foo-foo BLV
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            15,967.62
+                        </td>
+
+                        <td>
+                            01/13/2013
+                        </td>
+
+                        <td>
+                            01/31/2013
+                        </td>
+
+                        <td>
+                            0.00
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl1$btViewB" id="ctl00_Main_lvBills_ctrl1_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl1$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl1$btPayB" id="ctl00_Main_lvBills_ctrl1_btPayB" title="There is no balance due on this account. It is not eligible for payment." text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=21abbb54f96b47528911e02de7d4ff11348e91467299f588cd1f7b48d08e99ea&amp;t=&amp;g=%7e%2fResources%2fImages%2fPayNow.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="return false;WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl1$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl1$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl1_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridRow">
+                <td id="ctl00_Main_lvBills_ctrl2_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl2_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl2$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11669540029
+                        </td>
+
+                        <td>
+                            715 foo ST FIRE PUMP
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            8.35
+                        </td>
+
+                        <td>
+                            01/14/2013
+                        </td>
+
+                        <td>
+                            06/01/2013
+                        </td>
+
+                        <td>
+                            8.35
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl2$btViewB" id="ctl00_Main_lvBills_ctrl2_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl2$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl2$btPayB" id="ctl00_Main_lvBills_ctrl2_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl2$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl2$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl2_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridAltRow">
+                <td id="ctl00_Main_lvBills_ctrl3_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl3_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl3$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11669560011
+                        </td>
+
+                        <td>
+                            188 UNION ST BCC
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            2,988.59
+                        </td>
+
+                        <td>
+                            01/14/2013
+                        </td>
+
+                        <td>
+                            06/01/2013
+                        </td>
+
+                        <td>
+                            2988.59
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl3$btViewB" id="ctl00_Main_lvBills_ctrl3_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl3$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl3$btPayB" id="ctl00_Main_lvBills_ctrl3_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl3$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl3$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl3_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridRow">
+                <td id="ctl00_Main_lvBills_ctrl4_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl4_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl4$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11047970010
+                        </td>
+
+                        <td>
+                            715 foo ST VIS ARTS
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            31,085.74
+                        </td>
+
+                        <td>
+                            01/14/2013
+                        </td>
+
+                        <td>
+                            06/01/2013
+                        </td>
+
+                        <td>
+                            31085.74
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl4$btViewB" id="ctl00_Main_lvBills_ctrl4_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl4$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl4$btPayB" id="ctl00_Main_lvBills_ctrl4_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl4$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl4$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl4_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridAltRow">
+                <td id="ctl00_Main_lvBills_ctrl5_colCheckbox" class="Width2em">
+
+                </td>
+
+
+                        <td>
+                            11128060039
+                        </td>
+
+                        <td>
+                            1215 foo ST
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            2,133.24
+                        </td>
+
+                        <td>
+                            01/15/2013
+                        </td>
+
+                        <td>
+                            06/02/2013
+                        </td>
+
+                        <td>
+                            -148.54
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl5$btViewB" id="ctl00_Main_lvBills_ctrl5_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl5$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl5$btPayB" id="ctl00_Main_lvBills_ctrl5_btPayB" title="There is no balance due on this account. It is not eligible for payment." text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=21abbb54f96b47528911e02de7d4ff11348e91467299f588cd1f7b48d08e99ea&amp;t=&amp;g=%7e%2fResources%2fImages%2fPayNow.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="return false;WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl5$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl5$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl5_hidNoticeAmount" value="0.00">
+                </td>
+            </tr>
+
+            <tr class="GridRow">
+                <td id="ctl00_Main_lvBills_ctrl6_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl6_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl6$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11110320029
+                        </td>
+
+                        <td>
+                            111 foo RD
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            356,412.99
+                        </td>
+
+                        <td>
+                            01/23/2013
+                        </td>
+
+                        <td>
+                            06/10/2013
+                        </td>
+
+                        <td>
+                            252048.86
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl6$btViewB" id="ctl00_Main_lvBills_ctrl6_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl6$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl6$btPayB" id="ctl00_Main_lvBills_ctrl6_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl6$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl6$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl6_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridAltRow">
+                <td id="ctl00_Main_lvBills_ctrl7_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl7_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl7$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            15928670049
+                        </td>
+
+                        <td>
+                            333 foo-CORNER RD
+                        </td>
+
+                        <td>
+                            E
+                        </td>
+
+                        <td>
+                            15,614.68
+                        </td>
+
+                        <td>
+                            01/23/2013
+                        </td>
+
+                        <td>
+                            06/10/2013
+                        </td>
+
+                        <td>
+                            8599.42
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl7$btViewB" id="ctl00_Main_lvBills_ctrl7_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl7$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl7$btPayB" id="ctl00_Main_lvBills_ctrl7_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl7$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl7$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl7_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridRow">
+                <td id="ctl00_Main_lvBills_ctrl8_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl8_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl8$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            15936180015
+                        </td>
+
+                        <td>
+                            333 foo-CORNER RD
+                        </td>
+
+                        <td>
+                            G
+                        </td>
+
+                        <td>
+                            638.02
+                        </td>
+
+                        <td>
+                            01/23/2013
+                        </td>
+
+                        <td>
+                            06/10/2013
+                        </td>
+
+                        <td>
+                            638.02
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl8$btViewB" id="ctl00_Main_lvBills_ctrl8_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl8$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl8$btPayB" id="ctl00_Main_lvBills_ctrl8_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl8$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl8$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl8_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridAltRow">
+                <td id="ctl00_Main_lvBills_ctrl9_colCheckbox" class="Width2em">
+
+                </td>
+
+
+                        <td>
+                            11235290026
+                        </td>
+
+                        <td>
+                            706 S-foo-foo BLV
+                        </td>
+
+                        <td>
+                            G
+                        </td>
+
+                        <td>
+                            674.70
+                        </td>
+
+                        <td>
+                            01/13/2013
+                        </td>
+
+                        <td>
+                            01/31/2013
+                        </td>
+
+                        <td>
+                            0.00
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl9$btViewB" id="ctl00_Main_lvBills_ctrl9_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl9$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl9$btPayB" id="ctl00_Main_lvBills_ctrl9_btPayB" title="There is no balance due on this account. It is not eligible for payment." text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=21abbb54f96b47528911e02de7d4ff11348e91467299f588cd1f7b48d08e99ea&amp;t=&amp;g=%7e%2fResources%2fImages%2fPayNow.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="return false;WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl9$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl9$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl9_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridRow">
+                <td id="ctl00_Main_lvBills_ctrl10_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl10_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl10$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11411280012
+                        </td>
+
+                        <td>
+                            1215 foo ST
+                        </td>
+
+                        <td>
+                            G
+                        </td>
+
+                        <td>
+                            30.55
+                        </td>
+
+                        <td>
+                            01/15/2013
+                        </td>
+
+                        <td>
+                            06/02/2013
+                        </td>
+
+                        <td>
+                            15.00
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl10$btViewB" id="ctl00_Main_lvBills_ctrl10_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl10$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl10$btPayB" id="ctl00_Main_lvBills_ctrl10_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl10$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl10$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl10_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+            <tr class="GridAltRow">
+                <td id="ctl00_Main_lvBills_ctrl11_colCheckbox" class="Width2em">
+                    <input id="ctl00_Main_lvBills_ctrl11_cbPay" type="checkbox" name="ctl00$Main$lvBills$ctrl11$cbPay" onclick="javascript:checkTotalAmount();">
+                </td>
+
+
+                        <td>
+                            11963460012
+                        </td>
+
+                        <td>
+                            111 foo RD GEN
+                        </td>
+
+                        <td>
+                            G
+                        </td>
+
+                        <td>
+                            11.65
+                        </td>
+
+                        <td>
+                            01/24/2013
+                        </td>
+
+                        <td>
+                            06/11/2013
+                        </td>
+
+                        <td>
+                            11.65
+                        </td>
+
+                <td class="GridLastHdr">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl11$btViewB" id="ctl00_Main_lvBills_ctrl11_btViewB" src="NSTAR/__ImageButtonHandler.axd?c=eb2ec11b8de4785f86464de73be7bc3ed7bc939145c8e6e6314b6d6a7c3cbc0e&amp;t=+View&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=45&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl11$btViewB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;ViewPay.aspx&quot;, false, false))" style="border-width:0px;">
+                    <input type="image" name="ctl00$Main$lvBills$ctrl11$btPayB" id="ctl00_Main_lvBills_ctrl11_btPayB" text="Pay Now" src="NSTAR/__ImageButtonHandler.axd?c=41a3c73e9b7f4ce8b3b595502fa90eb44ffb2cd8b920255945eb1d0b4833df43&amp;t=+Pay+Now+&amp;g=%7e%2fResources%2fImages%2fBlueMedium.png&amp;f=Tahoma&amp;m=png&amp;s=9&amp;l=regular&amp;w=65&amp;h=15&amp;x=0&amp;y=0" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$lvBills$ctrl11$btPayB&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, false))" style="border-width:0px;">
+
+                    <input type="hidden" name="ctl00$Main$lvBills$ctrl11$hidNoticeAmount" id="ctl00_Main_lvBills_ctrl11_hidNoticeAmount" value="0">
+                </td>
+            </tr>
+
+                <tr class="GridPager">
+                    <td id="ctl00_Main_lvBills_colPager" colspan="11">
+                        <table cellpadding="0" cellspacing="0" class="KPager">
+            <tbody><tr class="KPager">
+                <td class="KPagerInfoCell">Page 1 of 3</td><td class="KPagerCell"><span class="PagerHyperlinkStyle" title=" to First Page "><img src="../Resources/Images/first.gif" alt="first"></span>&nbsp;<span class="PagerHyperlinkStyle" title=" Back to Page 0"><img src="../Resources/Images/prev.gif" alt="previous"></span>&nbsp;<span class="PagerHyperlinkStyle" title="Showing Results 1 to 12 of 36">1</span>&nbsp;<a class="PagerHyperlinkStyle" href="javascript:__doPostBack('ctl00$Main$lvBills$viewPager','2')" title="Show Result 13 to 24 of 36">2</a>&nbsp;<a class="PagerHyperlinkStyle" href="javascript:__doPostBack('ctl00$Main$lvBills$viewPager','3')" title="Show Result 25 to 36 of 36">3</a>&nbsp;<a class="PagerHyperlinkStyle" href="javascript:__doPostBack('ctl00$Main$lvBills$viewPager','2')" title=" Next to Page 2"><img src="../Resources/Images/next.gif" alt="next"></a>&nbsp;<a class="PagerHyperlinkStyle" href="javascript:__doPostBack('ctl00$Main$lvBills$viewPager','3')" title=" to Last Page "><img src="../Resources/Images/last.gif" alt="last"></a>&nbsp;</td><td class="KPagerJumpToCell"><div class="GoToLabel">&nbsp;Jump To Page:&nbsp;<select class="GoToSelect" name="ddlTes" id="ddlTes" onchange="javascript:handleGoto(this);"><option selected="selected" class="GoToSelectedOption" value="1">1</option><option value="2">2</option><option value="3">3</option></select></div></td>
+            </tr>
+        </tbody></table><script type="text/javascript">function handleGoto(selectObj) { eval(("javascript:__doPostBack('ctl00$Main$lvBills$viewPager','page')").replace('page', selectObj.options[selectObj.selectedIndex].value));}</script>
+                    </td>
+
+                </tr>
+            </tbody></table>
+
+    <br>
+    <fieldset id="ctl00_Main_fsGroup" class="Expanded">
+        <legend>
+            Group Pay</legend>
+        <input name="ctl00$Main$txtCustomerValidate" type="text" id="ctl00_Main_txtCustomerValidate" style="display: none">
+
+        <table border="0" class="width95 marginAuto" cellspacing="5">
+            <tbody><tr>
+                <td class="width25">
+                     <input type="button" name="ctl00$Main$btnPaySelected" value="Pay Selected" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$Main$btnPaySelected&quot;, &quot;&quot;, false, &quot;&quot;, &quot;PayAdd.aspx&quot;, false, true))" id="ctl00_Main_btnPaySelected" class="button" lang="Pay Selected" style="width:180px;" disabled="">
+                </td>
+                <td>
+                    To <b>PAY</b> multiple bills at the same time, select the bills you want on the left and press <b>Pay Selected</b> button respectively.
+                </td>
+            </tr>
+        </tbody></table>
+    </fieldset>
+
+
+
+    <script language="javascript" type="text/javascript">
+        checkTotalAmount();
+        //document.getElementById(_prefix + "btnPaySelected").disabled = true;
+    </script>
+
+
+                            <!-- Content placeholder end -->
+                           </td>
+                          </tr>
+                          </tbody></table>
+                        </div>
+                        <!-- #columns end -->
+                    </div>
+                    <!-- #page end -->
+                    <!-- Required to clear floating elements-->
+                    <div style="clear: both; height: 0px">
+                        <!--Required to keep IE from shrinking the content past min-width property of PageContainer class, which it ignores -->
+                        <hr class="MinContentWidth">
+                    </div>
+                    <!-- #content end -->
+                    <div style="height: 28px;">
+                        &nbsp;
+                    </div>
+                    <!-- #footer: holds the site footer (logo and links) Do NOT use elements that belong in a FORM since form is closed already -->
+
+ <div id="columnwrapperright" style="width:auto">
+    <div id="footern">&nbsp;</div>
+    <div id="footernav">
+        <p style="text-align:center">
+            <a href="http://www.nstar.com/business/" target="_blank" class="lktopbotnav">Business</a>&nbsp;|
+            <a href="http://www.nstar.com/about_nstar/" target="_blank" class="lktopbotnav">About NSTAR</a>&nbsp;|&nbsp;
+            <a href="http://www.nstar.com/about_nstar/sustainability/" target="_blank" class="lktopbotnav">Sustainability</a>&nbsp;|&nbsp;
+            <a href="http://www.nstarcareers.com/" target="_blank" class="lktopbotnav">Careers</a>&nbsp;|&nbsp;
+            <a href="http://www.nstar.com/nstar_news/" target="_blank" class="lktopbotnav">News</a>&nbsp;|&nbsp;
+            <a href="http://www.nu.com/investors/" target="_blank" class="lktopbotnav">Investor Relations</a>
+            <img src="../Resources/Images/session_pinger.gif" border="0" height="0" width="0">
+        </p>
+    </div>
+    <div id="footercopyright">
+        <table border="0" width="99%"><tbody>
+            <tr>
+                <td class="sizeminus1" align="left" valign="top" width="50%" style="color:black;"></td>
+                <td class="footeralign" valign="top" width="50%">
+                    <span class="sizeminus1"><a href="http://www.nstar.com/about_nstar/legal_statements/" target="_blank">Legal Statements</a>&nbsp;&nbsp;
+                        <img src="../Resources/Images/spacer_black.gif" align="middle" border="0" height="2" width="2">&nbsp;&nbsp;
+                        <a href="http://www.nstar.com/site_map_nstar/" target="_blank">Site Map</a>
+                    </span>
+                </td>
+            </tr>
+        </tbody></table>
+    </div>
+</div>
+<div id="CanvasB" style="display:none">
+</div>
+ <div class="progressbar-box" id="progressbarID" style="display:none">
+  <div class="progressbar-wrap">
+    <div class="progressbar-value" id="progressbarImg">
+        <div class="progressbar-text" id="progressbarTxt">
+
+        </div>
+    </div>
+  </div><br>
+  <div class="progressbar-text1" id="progressbar-text1">&nbsp;&nbsp;Loading...</div>
+ </div>
+
+                    <div id="ctl00_FooterContainer">
+                        <div id="footer" class="footer">
+                            <!-- #bg: applies the site width and footer background -->
+                            <div id="bg" class="bg width100">
+                                <ul>
+
+                                    <li id="ctl00_liTerms"><a href="javascript:var r=window.open('http://www.nstar.com/about_nstar/legal_statements/');" target="_blank">Terms and Conditions</a></li>
+                                    <li id="ctl00_liKubra"><a href="javascript:var r=window.open('http://www.nstar.com');" target="_blank" class="last">NSTAR</a></li></ul>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+        <td id="ctl00_RightBorder" class="RightBorder">
+                    <div style="width: 100px;">
+                        &nbsp;
+                    </div>
+                </td>
+    </tr>
+</tbody></table>
+
+
+<script language="javascript" type="text/javascript">    while (top.location != self.location || parent.frames.length > 0) {        alert('WARNING: This website has been framed!');        top.location = self.location.href;        setTimeout('top.location = self.location;', 5000);    }    if (top.location == self.location) { $('#divOutside').show(); }     if (top.location.href.toUpperCase().indexOf('/SECURE/') > 0) { setTimeout("top.location.href='/NSTAR/Default.aspx'", 1200001); }</script>
+<script type="text/javascript">
+//<![CDATA[
+Sys.Application.initialize();
+//]]>
+</script>
+<input type="hidden" name="__ncforminfo" value="kdfKyLamwsawTDQf2hd11GJ1hGkcG_EZFU7COAj86Bz83dg1rmN7v_rfDP3bsiJjFvsLgJvdyGr81EYG1LpoMAg72UTAxe6otcCKlPrl5TU3w3hGlGFwY_eI0pbpIN5omYvP0jplj-iM_a0EAX2YxOriPYIiDTeUyu1PaQF4De2omJ2lvRjINaGW6e9cVzl47SVGKTI5GGb0bI6RNT5nfw=="></form>
+    </div>
+
+
+
+<div id="ui-datepicker-div" class="ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all ui-helper-hidden-accessible"></div></body></html>
